@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mock Interviewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: #2c3e50;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 20px;
+            padding: 8px 15px;
+            width: 300px;
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 5px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        /* Main Content Layout */
+        .container {
+            display: flex;
+            height: calc(100vh - 64px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: #34495e;
+            color: white;
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-menu li:hover {
+            background: #2c3e50;
+            border-left: 4px solid #3498db;
+        }
+
+        .sidebar-menu li.active {
+            background: #2c3e50;
+            border-left: 4px solid #3498db;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            background: #f5f6fa;
+            overflow-y: auto;
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .welcome-section h1 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .interview-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .option-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .option-card i {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+
+        /* Interview Interface */
+        .interview-interface {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .ai-message {
+            background: #f0f7ff;
+            margin-right: 20%;
+        }
+
+        .user-message {
+            background: #e8f5e9;
+            margin-left: 20%;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        /* Voice Controls */
+        .voice-controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .voice-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .voice-btn.active {
+            background: #27ae60;
+        }
+
+        .voice-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+
+        .voice-indicator.active {
+            background: #27ae60;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: #3498db;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Timer */
+        .timer {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+
+            .search-bar {
+                width: 200px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="#" class="logo">AI Mock Interviewer</a>
+        <div class="search-bar">
+            <input type="text" placeholder="Search...">
+            <i class="fas fa-search"></i>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </li>
+                <li>
+                    <i class="fas fa-user-tie"></i>
+                    <span>Mock Interviews</span>
+                </li>
+                <li>
+                    <i class="fas fa-tasks"></i>
+                    <span>Practice Questions</span>
+                </li>
+                <li>
+                    <i class="fas fa-chart-line"></i>
+                    <span>Progress Report</span>
+                </li>
+                <li>
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+                <li>
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & Support</span>
+                </li>
+                <li>
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="welcome-section">
+                <h1>Welcome to AI Mock Interviewer</h1>
+                <div class="interview-options">
+                    <div class="option-card" onclick="openInterviewModal()">
+                        <i class="fas fa-play-circle"></i>
+                        <h3>Start Interview</h3>
+                        <p>Begin a new mock interview session</p>
+                    </div>
+                    <div class="option-card">
+                        <i class="fas fa-history"></i>
+                        <h3>Resume Interview</h3>
+                        <p>Continue your previous session</p>
+                    </div>
+                    <div class="option-card">
+                        <i class="fas fa-book"></i>
+                        <h3>Practice Mode</h3>
+                        <p>Practice with sample questions</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interview Interface -->
+            <div class="interview-interface" id="interviewInterface">
+                <div class="timer" id="timer">00:00</div>
+                <div class="progress-bar">
+                    <div class="progress" id="interviewProgress"></div>
+                </div>
+                <div class="chat-container" id="chatContainer"></div>
+                <div class="controls">
+                    <input type="text" id="userInput" placeholder="Type your answer...">
+                    <button class="btn" onclick="submitAnswer()">Submit</button>
+                </div>
+                <div class="voice-controls">
+                    <button class="voice-btn" id="voiceButton" onclick="toggleVoiceMode()">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <div class="voice-indicator" id="voiceIndicator"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Interview Setup Modal -->
+    <div class="modal" id="interviewModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeInterviewModal()">&times;</span>
+            <h2>Interview Setup</h2>
+            <form id="interviewForm" onsubmit="startInterview(event)">
+                <div class="form-group">
+                    <label for="jobRole">Job Role/Position</label>
+                    <input type="text" id="jobRole" required placeholder="e.g., Software Engineer">
+                </div>
+                <div class="form-group">
+                    <label for="jobDescription">Job Description</label>
+                    <textarea id="jobDescription" rows="4" required placeholder="Paste the job description here..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="experience">Years of Experience</label>
+                    <select id="experience" required>
+                        <option value="">Select experience</option>
+                        <option value="0-1">0-1 years</option>
+                        <option value="1-3">1-3 years</option>
+                        <option value="3-5">3-5 years</option>
+                        <option value="5-10">5-10 years</option>
+                        <option value="10+">10+ years</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Start Interview</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        // Interview state management
+        const interviewState = {
+            questions: [],
+            currentQuestionIndex: 0,
+            duration: 0,
+            timer: null,
+            isVoiceMode: false,
+            recognition: null
+        };
+
+        // Question templates based on job roles
+        const questionTemplates = {
+            'software engineer': [
+                "Can you explain the concept of Object-Oriented Programming?",
+                "What is your experience with version control systems?",
+                "Explain RESTful API architecture",
+                "How do you handle error handling in your preferred programming language?",
+                "Describe a challenging project you worked on",
+                "How do you approach problem-solving in software development?",
+                "What's your experience with agile methodologies?",
+                "How do you ensure code quality in your projects?"
+            ],
+            'data scientist': [
+                "Explain the difference between supervised and unsupervised learning",
+                "How do you handle missing data in a dataset?",
+                "Explain cross-validation in machine learning",
+                "What's your experience with deep learning frameworks?",
+                "How do you approach feature selection?",
+                "Describe a data science project you're proud of",
+                "How do you handle imbalanced datasets?",
+                "Explain your process for model evaluation"
+            ],
+            'default': [
+                "Tell me about yourself",
+                "What are your greatest strengths?",
+                "How do you handle challenging situations?",
+                "Where do you see yourself in 5 years?",
+                "Why are you interested in this role?",
+                "How do you stay updated with industry trends?",
+                "Describe a situation where you showed leadership",
+                "How do you handle conflicts in a team?"
+            ]
+        };
+
+        // Voice recognition setup
+        function setupVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                interviewState.recognition = new webkitSpeechRecognition();
+                interviewState.recognition.continuous = true;
+                interviewState.recognition.interimResults = true;
+
+                interviewState.recognition.onresult = (event) => {
+                    const transcript = Array.from(event.results)
+                        .map(result => result[0])
+                        .map(result => result.transcript)
+                        .join('');
+                    
+                    document.getElementById('userInput').value = transcript;
+                };
+
+                interviewState.recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    toggleVoiceMode();
+                };
+            }
+        }
+
+        // Toggle voice mode
+        function toggleVoiceMode() {
+            if (!interviewState.recognition) {
+                setupVoiceRecognition();
+            }
+
+            interviewState.isVoiceMode = !interviewState.isVoiceMode;
+            const voiceButton = document.getElementById('voiceButton');
+            const indicator = document.getElementById('voiceIndicator');
+
+            if (interviewState.isVoiceMode) {
+                voiceButton.classList.add('active');
+                indicator.classList.add('active');
+                interviewState.recognition.start();
+            } else {
+                voiceButton.classList.remove('active');
+                indicator.classList.remove('active');
+                interviewState.recognition.stop();
+            }
+        }
+
+        // Modal functions
+        function openInterviewModal() {
+            document.getElementById('interviewModal').style.display = 'block';
+        }
+
+        function closeInterviewModal() {
+            document.getElementById('interviewModal').style.display = 'none';
+        }
+
+        // Start interview
+        function startInterview(event) {
+            event.preventDefault();
+            
+            const jobRole = document.getElementById('jobRole').value.toLowerCase();
+            interviewState.questions = questionTemplates[jobRole] || questionTemplates.default;
+            
+            closeInterviewModal();
+            document.querySelector('.welcome-section').style.display = 'none';
+            document.getElementById('interviewInterface').style.display = 'block';
+            
+            // Start timer
+            interviewState.timer = setInterval(updateTimer, 1000);
+            
+            // Start first question
+            askQuestion();
+        }
+
+        // Timer update
+        function updateTimer() {
+            interviewState.duration++;
+            const minutes = Math.floor(interviewState.duration / 60);
+            const seconds = interviewState.duration % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Ask question
+        function askQuestion() {
+            if (interviewState.currentQuestionIndex < interviewState.questions.length) {
+                const question = interviewState.questions[interviewState.currentQuestionIndex];
+                addMessage(question, 'ai');
+                updateProgress();
+            } else {
+                endInterview();
+            }
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (interviewState.currentQuestionIndex / interviewState.questions.length) * 100;
+            document.getElementById('interviewProgress').style.width = `${progress}%`;
+        }
+
+        // Submit answer
+        function submitAnswer() {
+            const userInput = document.getElementById('userInput');
+            const answer = userInput.value.trim();
+            
+            if (answer) {
+                addMessage(answer, 'user');
+                userInput.value = '';
+                
+                // Provide feedback
+                provideFeedback(answer);
+                
+                interviewState.currentQuestionIndex++;
+                setTimeout(askQuestion, 1500);
+            }
+        }
+
+        // Add message to chat
+        function addMessage(text, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Provide feedback
+        function provideFeedback(answer) {
+            const feedbacks = [
+                "Good point! Consider providing more specific examples.",
+                "Well structured answer. Try to elaborate more on the impact.",
+                "Clear explanation. You might want to mention alternative approaches.",
+                "Great response! Consider discussing challenges you faced.",
+                "Solid answer. You could also mention relevant technologies."
+            ];
+            
+            const feedback = feedbacks[Math.floor(Math.random() * feedbacks.length)];
+            setTimeout(() => addMessage(feedback, 'ai'), 1000);
+        }
+
+        // End interview
+        function endInterview() {
+            clearInterval(interviewState.timer);
+            if (interviewState.isVoiceMode) {
+                toggleVoiceMode();
+            }
+            addMessage("Thank you for completing the interview! We'll analyze your responses and provide feedback shortly.", 'ai');
+        }
+
+        // Event listeners
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('interviewModal')) {
+                closeInterviewModal();
+            }
+        }
+    </script>
+</body>
+</html>
